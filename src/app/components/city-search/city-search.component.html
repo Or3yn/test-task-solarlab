@@ -1,9 +1,23 @@
-<mat-form-field appearance="fill">
-  <mat-label>Enter city name</mat-label>
-  <input type="text" matInput [formControl]="cityControl" [matAutocomplete]="auto">
-  <mat-autocomplete #auto="matAutocomplete">
-    <mat-option *ngFor="let city of filteredCities | async" [value]="city">
-      {{ city }}
-    </mat-option>
-  </mat-autocomplete>
-</mat-form-field>
+<div>
+  <mat-form-field appearance="fill">
+    <mat-label>Enter city name</mat-label>
+    <input type="text" matInput [formControl]="cityControl" [matAutocomplete]="auto" />
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onCitySelected($event.option.value)">
+      <mat-option *ngFor="let city of filteredCities | async" [value]="city.value">
+        {{ city.value }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+</div>
+
+<div *ngIf="weatherData">
+  <h3>Weather in {{ weatherData.city }}</h3>
+  <p>Temperature: {{ weatherData.temperature }} °C</p>
+  <p>Humidity: {{ weatherData.humidity }} %</p>
+  <p>Wind speed: {{ weatherData.wind }} m/s</p>
+</div>
+
+<div *ngIf="currentLocationWeather">
+  <h3>Ваше текущее местоположение</h3>
+  <div id="map" style="width: 100%; height: 400px;"></div>
+</div>

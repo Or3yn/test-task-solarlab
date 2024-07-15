@@ -1,23 +1,48 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+// src/app/components/city-search/city-search.component.ts
+import { Component, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { startWith, map, switchMap } from 'rxjs/operators';
+import { WeatherService } from '../../services/weather.service';
 
-import { CitySearchComponent } from './city-search.component';
+@Component({
+  selector: 'app-city-search',
+  templateUrl: './city-search.component.html',
+  styleUrls: ['./city-search.component.scss'],
+})
+export class CitySearchComponent implements OnInit {
+  cityControl = new FormControl();
+  filteredCities: Observable<string[]>;
+  weatherData: any;
+  geolocationData: any;
 
-describe('CitySearchComponent', () => {
-  let component: CitySearchComponent;
-  let fixture: ComponentFixture<CitySearchComponent>;
+  constructor(private weatherService: WeatherService) {}
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [CitySearchComponent]
-    })
-    .compileComponents();
+  ngOnInit() {
+    this.filteredCities = this.cityControl.valueChanges.pipe(
+      startWith(''),
+      switchMap(value => this.weatherService.getCities(value))
+    );
 
-    fixture = TestBed.createComponent(CitySearchComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    this.getGeolocation();
+  }
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+  displayFn(city: any): string {
+    return city ? city.value : '';
+  }
+
+  getWeather(city: any) {
+    this.weatherService.getWeather(city.value).subscribe(data => {
+      this.weatherData = data;
+    });
+  }
+
+  getGeolocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        this.geolocationData = position;
+        // You can use the position.coords.latitude and position.coords.longitude to get weather for user's location
+      });
+    }
+  }
+}
