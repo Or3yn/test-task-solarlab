@@ -46,10 +46,14 @@ export class CitySearchComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Load Yandex Map script
-    const script = document.createElement('script');
-    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=6dbb81e1-fd3a-4232-b8fc-991ae00b8749&lang=ru_RU';  // Укажите ваш API ключ
-    script.onload = () => ymaps.ready(this.initMap.bind(this));
-    document.head.appendChild(script);
+    if (!this.isYmapsLoaded()) {
+      const script = document.createElement('script');
+      script.src = 'https://api-maps.yandex.ru/2.1/?apikey=6dbb81e1-fd3a-4232-b8fc-991ae00b8749&lang=ru_RU';  // Укажите ваш API ключ
+      script.onload = () => ymaps.ready(this.initMap.bind(this));
+      document.head.appendChild(script);
+    } else {
+      ymaps.ready(this.initMap.bind(this));
+    }
   }
 
   onCitySelected(city: string) {
@@ -59,18 +63,17 @@ export class CitySearchComponent implements OnInit, AfterViewInit {
   }
 
   initializeMap(lat: number, lon: number) {
-    if (this.map) {
-      this.map.destroy(); // уничтожаем старую карту, если она существует
+    if (!this.map) {
+      this.map = new ymaps.Map('map', {
+        center: [lat, lon],
+        zoom: 10,
+      });
+      const placemark = new ymaps.Placemark([lat, lon], {}, {
+        preset: 'islands#icon',
+        iconColor: '#0095b6',
+      });
+      this.map.geoObjects.add(placemark);
     }
-    this.map = new ymaps.Map('map', {
-      center: [lat, lon],
-      zoom: 10,
-    });
-    const placemark = new ymaps.Placemark([lat, lon], {}, {
-      preset: 'islands#icon',
-      iconColor: '#0095b6',
-    });
-    this.map.geoObjects.add(placemark);
   }
 
   initMap() {
@@ -85,5 +88,9 @@ export class CitySearchComponent implements OnInit, AfterViewInit {
     } else {
       setTimeout(() => this.loadMap(lat, lon), 1000);
     }
+  }
+
+  isYmapsLoaded(): boolean {
+    return typeof ymaps !== 'undefined' && typeof ymaps.Map !== 'undefined';
   }
 }
